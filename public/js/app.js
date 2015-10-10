@@ -88,25 +88,32 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 	this.display = this.inbox;
 	
 	this.setTab = function( tabName ) {
+		// Set the tab property, set the current tab to active, uncheck all messages that were
+		// previously checked, update the display array with the array of messages associated
+		// with the new tab, and set a timeout to delay adding the events until all messages have
+		// been populated.
 		this.tab = tabName;
 		
 		$('.tab.active').removeClass('active');
 		$('#' + tabName + 'Tab').addClass('active');
 		
 		$('#selectAll').prop('checked', false);
+		$('.message-checkbox').prop('checked', false);
 		
 		this.display = this[tabName];
+		
+		console.dir(this.display);
 		
 		setTimeout(initializeEvents, 50);
 	};
 	
 	$scope.compose = function( data ) {
-		var outboxData = Object.create(data);
+		// Add an id and date property to the given data object, and add the new message data to
+		// the outbox array. Hide the compose modal, and reset the form.
+		data.id   = generateId();
+		data.date = new Date().toString();
 		
-		outboxData.id   = generateId();
-		outboxData.date = new Date().toString();
-		
-		$scope.messages.outbox.push(outboxData);
+		$scope.messages.outbox.push(data);
 		
 		$('#composeModal').modal('hide');
 		
@@ -114,6 +121,9 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 	};
 	
 	$scope.deleteMessages = function() {
+		// Find all of the messages that are checked, and keep track of their index within their
+		// array. If not the archived folder, move the checked messages to the archived array, otherwise
+		// delete the messages. Uncheck all messages.
 		var checkboxes    = $('.message-checkbox');
 		var remove        = [];
 		var removeIndexes = [];
@@ -135,33 +145,27 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 		for (var inRemove = removeIndexes.length - 1; inRemove >= 0; inRemove--) {
 			var removeIndex = removeIndexes[inRemove];
 			
-			if (currentTab !== 'archived') {
-				var copy = Object.create($scope.messages.display[removeIndex]);
-				
-				$scope.messages.archived.push(copy);
-			}
-			
 			switch (currentTab) {
 				case 'inbox': {
-					console.log('1: ' + $scope.messages.inbox);
+					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
 					
-					delete $scope.messages.inbox[removeIndex];
-					
-					console.log('2: ' + $scope.messages.inbox);
+					$scope.messages.inbox = removeFromArray($scope.messages.inbox, removeIndex);
 					
 					$scope.messages.display = $scope.messages.inbox;
 					
 					break;
 				}
 				case 'outbox': {
-					delete $scope.messages.outbox[removeIndex];
+					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
+					
+					$scope.messages.outbox = removeFromArray($scope.messages.outbox, removeIndex);
 					
 					$scope.messages.display = $scope.messages.outbox;
 					
 					break;
 				}
 				case 'archived': {
-					delete $scope.messages.archived[removeIndex];
+					$scope.messages.archived = removeFromArray($scope.messages.archived, removeIndex);
 					
 					$scope.messages.display = $scope.messages.archived;
 					
@@ -169,6 +173,9 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 				}
 			}
 		}
+		
+		$('#selectAll').prop('checked', false);
+		$('.message-checkbox').prop('checked', false);
 	}
 }]);
 
@@ -188,7 +195,7 @@ function initializeEvents() {
 	$('#selectAll').on('click', selectAllMessages);
 	$('#deleteBtn').on('click', deleteMessages);
 	
-	$('.message-checkbox').on('click', messageSelect);
+	$('.message-checkbox').on('change', messageSelect);
 }
 
 function messageBodyClick( evntClick ) {
@@ -246,11 +253,17 @@ function messageSelect( evntClick ) {
 
 function checkDeleteEnabled() {
 	// Enable the delete button only if at least one message is selected.
-	if ($('.message-checkbox').prop('checked')) {
-		$('#deleteBtn').removeClass('disabled');
-	} else {
-		$('#deleteBtn').addClass('disabled');
+	var checkboxes = $('.message-checkbox');
+	
+	for (var inCheckboxes = 0; inCheckboxes < checkboxes.length; inCheckboxes++) {
+		if ($(checkboxes[inCheckboxes]).prop('checked')) {
+			$('#deleteBtn').removeClass('disabled');
+			
+			return
+		}
 	}
+	
+	$('#deleteBtn').addClass('disabled');
 }
 
 function generateId() {
@@ -259,4 +272,31 @@ function generateId() {
 	var id02 = Math.floor(Math.random() * id01);
 	
 	return (id01 * id02).toString().slice(0, 5);
+}
+
+function removeFromArray( array, index ) {
+	// Remove the given index from the given array.
+	if (array.length <= 1) {
+		return [];
+	} else if (index === 0) {
+		array.shift();
+		
+		return array; 
+	} else if (index === array.length - 1) {
+		array.pop();
+		
+		return array;
+	}
+	
+	for (var inArray = 0; inArray < array.length; inArray++) {
+		if (inArray = index) {
+			array[inArray] = array[inArray + 1];
+		} else if (inArray > index && inArray < array.length - 1) {
+			array[inArray] = array[inArray + 1];
+		} else if (inArray > index) {
+			array.pop();
+		}
+	}
+	
+	return array;
 }

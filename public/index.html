@@ -40,9 +40,9 @@
 			</nav>
 		</header>
 		<section id="mail">
-			<table class="table table-hover">
+			<table class="table table-hover" ng-show="messages.display.length">
 				<tbody>
-					<tr ng-repeat="message in messages.display | orderBy:messageSort | filter:messageSearch">
+					<tr ng-repeat="message in messages.display | orderBy:messageSort | filter:messageSearch track by $index">
 						<td>
 							<input class="message-checkbox" data-id="{{message.id}}" type="checkbox"/>
 						</td>
@@ -55,6 +55,9 @@
 					</tr>
 				</tbody>
 			</table>
+			<div class="alert alert-info" id="emptyMessage" ng-hide="messages.display.length">
+				Looks like there are no messages here....
+			</div>
 		</section>
 		<section>
 			<div id="composeModal" class="modal fade" role="dialog">

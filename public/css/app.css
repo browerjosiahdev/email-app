@@ -6,6 +6,10 @@
 	display: none;
 }
 
+#emptyMessage {
+	margin-top: 60px;
+}
+
 #sortContainer {
 	float: right;
 	margin-top: 13px;
