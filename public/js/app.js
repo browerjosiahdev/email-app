@@ -102,8 +102,6 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 		
 		this.display = this[tabName];
 		
-		console.dir(this.display);
-		
 		setTimeout(initializeEvents, 50);
 	};
 	
@@ -147,6 +145,10 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 			
 			switch (currentTab) {
 				case 'inbox': {
+					if ($scope.messages.archived === undefined) {
+						$scope.messages.archived = [];
+					}
+					
 					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
 					
 					$scope.messages.inbox = removeFromArray($scope.messages.inbox, removeIndex);
@@ -156,6 +158,10 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 					break;
 				}
 				case 'outbox': {
+					if ($scope.messages.archived === undefined) {
+						$scope.messages.archived = [];
+					}
+					
 					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
 					
 					$scope.messages.outbox = removeFromArray($scope.messages.outbox, removeIndex);
@@ -189,7 +195,15 @@ $(document).ready(function() {
 });
 
 function initializeEvents() {
-	// Add a click event to the message body class elements.
+	// Remove event listeners so they aren't duplicated.
+	$('.message-body').off('click', messageBodyClick);
+	
+	$('#selectAll').off('click', selectAllMessages);
+	$('#deleteBtn').off('click', deleteMessages);
+	
+	$('.message-checkbox').off('change', messageSelect);
+	
+	// Add the event listeners.
 	$('.message-body').on('click', messageBodyClick);
 	
 	$('#selectAll').on('click', selectAllMessages);
@@ -289,7 +303,7 @@ function removeFromArray( array, index ) {
 	}
 	
 	for (var inArray = 0; inArray < array.length; inArray++) {
-		if (inArray = index) {
+		if (inArray == index) {
 			array[inArray] = array[inArray + 1];
 		} else if (inArray > index && inArray < array.length - 1) {
 			array[inArray] = array[inArray + 1];
