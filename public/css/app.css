@@ -2,6 +2,10 @@
 	border-bottom: none !important;
 }
 
+.none {
+	display: none;
+}
+
 #sortContainer {
 	float: right;
 	margin-top: 13px;
@@ -17,10 +21,22 @@ div.input-group {
 	margin: 10px 0;
 }
 
+section {
+	display: block;
+}
+
 section.content {
 	border: 1px solid #ececec;
 	height: 100%;
 	width: auto;
+}
+
+section#options {
+	margin: 10px 0;
+}
+
+span.glyphicon-envelope {
+	font-size: 1.5em;
 }
 
 table.table.table-hover .message-body {

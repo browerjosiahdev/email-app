@@ -12,12 +12,19 @@
 	<div class="container-fluid">
 		<header>
 			<div class="input-group">
-				<input aria-label="search box" class="form-control" type="search"/>
+				<input aria-label="search box" class="form-control" ng-model="messageSearch" type="search"/>
 				<div class="input-group-btn">
-					<button aria-label="compose button" class="btn btn-default" id="search">Search</button>
-					<button aria-label="compose button" class="btn btn-primary" data-toggle="modal" data-target="#composeModal" id="compose">Compose</button>
+					<button aria-label="delete button" class="btn btn-danger disabled" id="deleteBtn">
+						<span aria-hidden="true" class="glyphicon glyphicon-trash"></span>
+					</button>
+					<button aria-label="compose button" class="btn btn-primary" data-toggle="modal" data-target="#composeModal" id="composeBtn">Compose</button>
 				</div>
 			</div>
+			<section id="options">
+				<div class="checkbox">
+					<label><input id="selectAll" type="checkbox" value="">Select All</label>
+				</div>
+			</section>
 			<nav>
 				<ul class="nav nav-tabs">
 					<li class="active tab" id="inboxTab"><a href="#" ng-click="messages.setTab('inbox');">Inbox</a></li>
@@ -25,19 +32,19 @@
 					<li class="tab" id="archivedTab"><a href="#" ng-click="messages.setTab('archived');">Archived</a></li>
 				</ul>
 				<div id="sortContainer">
-					<select id="sort" name="sort">
+					<select id="sort" name="sort" ng-model="messageSort">
 						<option value="">--</option>
-						<option value="dateRecieved">Date</option>
+						<option value="date">Date</option>
 					</select>
 				</div>
 			</nav>
 		</header>
-		<section>
+		<section id="mail">
 			<table class="table table-hover">
 				<tbody>
-					<tr ng-repeat="message in messages.display">
+					<tr ng-repeat="message in messages.display | orderBy:messageSort | filter:messageSearch">
 						<td>
-							<input class="message-checkbox" type="checkbox"/>
+							<input class="message-checkbox" data-id="{{message.id}}" type="checkbox"/>
 						</td>
 						<td>
 							<p class="message-from" title="{{message.from || message.to}}">{{message.from || message.to}}</p>
