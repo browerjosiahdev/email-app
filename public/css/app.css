@@ -1,0 +1,59 @@
+.nav-tabs {
+	border-bottom: none !important;
+}
+
+#sortContainer {
+	float: right;
+	margin-top: 13px;
+}
+
+body {
+	color: #000;
+	font-family: Arial, serif;
+	font-size: 14px;
+}
+
+div.input-group {
+	margin: 10px 0;
+}
+
+section.content {
+	border: 1px solid #ececec;
+	height: 100%;
+	width: auto;
+}
+
+table.table.table-hover .message-body {
+	margin: 0;
+	max-height: 100px;
+	overflow: hidden;
+	padding: 0;
+	
+	-webkit-transition: max-height 1s;
+	   -moz-transition: max-height 1s;
+	    -ms-transition: max-height 1s;
+	     -o-transition: max-height 1s;
+	        transition: max-height 1s;
+}
+
+table.table.table-hover .message-from {
+	margin: 0;
+	max-width: 100px;
+	min-width: 100px;
+	overflow: hidden;
+	padding: 0;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+table.table.table-hover td {
+	vertical-align: middle;
+}
+
+textarea {
+	resize: none;
+}
+
+ul.nav.nav-tabs {
+	float: left;
+}
