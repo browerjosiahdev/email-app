@@ -83,97 +83,92 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 			'date': 'Fri Oct 09 2015 23:10:50 GMT-0600 (MDT)'
 		}
 	];
+	this.tab = 'inbox';
 	
-	this.tab     = 'inbox';
-	this.display = this.inbox;
-	
-	this.setTab = function( tabName ) {
-		// Set the tab property, set the current tab to active, uncheck all messages that were
-		// previously checked, update the display array with the array of messages associated
-		// with the new tab, and set a timeout to delay adding the events until all messages have
-		// been populated.
-		this.tab = tabName;
+	this.setTab = function( tab ) {
+		// Set the tab.
+		this.tab = tab;
 		
-		$('.tab.active').removeClass('active');
-		$('#' + tabName + 'Tab').addClass('active');
-		
-		$('#selectAll').prop('checked', false);
-		$('.message-checkbox').prop('checked', false);
-		
-		this.display = this[tabName];
-		
-		setTimeout(initializeEvents, 50);
+		setTimeout(initializeEvents, 100);
 	};
 	
+	this.isTab = function( tab ) {
+		// Check to see if the current tab matches the given tab.
+		return this.tab === tab;
+	};
+	
+	this.hasMessages = function() {
+		// Check to see if the current tab has messages.
+		return this[this.tab].length > 0;
+	}
+	
 	$scope.compose = function( data ) {
-		// Add an id and date property to the given data object, and add the new message data to
-		// the outbox array. Hide the compose modal, and reset the form.
-		data.id   = generateId();
-		data.date = new Date().toString();
+		var to      = data.to;
+		var message = data.message;
 		
-		$scope.messages.outbox.push(data);
-		
-		$('#composeModal').modal('hide');
-		
-		document.getElementById('composeForm').reset();
+		// Make sure the form is valid before submitting the message.
+		if (to !== undefined && message !== undefined) {
+			// Add an id and date property to the given data object, and add the new message data to
+			// the outbox array. Hide the compose modal, and reset the form.
+			var messageData = {
+				'id': generateId(),
+				'date': new Date().toString(),
+				'to': to,
+				'message': message
+			};
+			
+			$scope.messages.outbox.push(messageData);
+			
+			$('#composeModal').modal('hide');
+			
+			document.getElementById('composeForm').reset();
+			
+			initializeEvents();	
+		}
 	};
 	
 	$scope.deleteMessages = function() {
 		// Find all of the messages that are checked, and keep track of their index within their
 		// array. If not the archived folder, move the checked messages to the archived array, otherwise
 		// delete the messages. Uncheck all messages.
-		var checkboxes    = $('.message-checkbox');
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// Changed from using jQuery to select the '.message-checkbox' items, because it was grabbing the
+		// original values even if the DOM had been updated.
+		var checkboxes    = document.getElementsByClassName('message-checkbox');
 		var remove        = [];
 		var removeIndexes = [];
+		var currentTab    = $scope.messages.tab;
 		
-		for (var inCheckboxes = 0; inCheckboxes < checkboxes.length; inCheckboxes++) {
-			if ($(checkboxes[inCheckboxes]).prop('checked')) {
-				remove.push($(checkboxes[inCheckboxes]).data('id'));
+		Array.prototype.forEach.call(checkboxes, function( checkbox ) {
+			if (checkbox.checked) {
+				remove.push(checkbox.getAttribute('data-id'));
 			}
-		}
+		});
 		
-		for (var inMessages = 0; inMessages < $scope.messages.display.length; inMessages++) {
-			if (remove.indexOf($scope.messages.display[inMessages].id) > -1) {
+		for (var inMessages = 0; inMessages < $scope.messages[currentTab].length; inMessages++) {
+			if (remove.indexOf($scope.messages[currentTab][inMessages].id.toString()) > -1) {
 				removeIndexes.push(inMessages);
 			}
 		}
-		
-		var currentTab = $scope.messages.tab;
 		
 		for (var inRemove = removeIndexes.length - 1; inRemove >= 0; inRemove--) {
 			var removeIndex = removeIndexes[inRemove];
 			
 			switch (currentTab) {
-				case 'inbox': {
-					if ($scope.messages.archived === undefined) {
-						$scope.messages.archived = [];
-					}
-					
-					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
-					
-					$scope.messages.inbox = removeFromArray($scope.messages.inbox, removeIndex);
-					
-					$scope.messages.display = $scope.messages.inbox;
-					
-					break;
-				}
+				case 'inbox': 
 				case 'outbox': {
 					if ($scope.messages.archived === undefined) {
 						$scope.messages.archived = [];
 					}
 					
-					$scope.messages.archived.push($scope.messages.inbox[removeIndex]);
+					$scope.messages.archived.push($scope.messages[currentTab][removeIndex]);
 					
-					$scope.messages.outbox = removeFromArray($scope.messages.outbox, removeIndex);
-					
-					$scope.messages.display = $scope.messages.outbox;
+					$scope.messages[currentTab] = removeFromArray($scope.messages[currentTab], removeIndex);
 					
 					break;
 				}
 				case 'archived': {
 					$scope.messages.archived = removeFromArray($scope.messages.archived, removeIndex);
-					
-					$scope.messages.display = $scope.messages.archived;
 					
 					break;
 				}
@@ -195,21 +190,24 @@ $(document).ready(function() {
 });
 
 function initializeEvents() {
-	// Remove event listeners so they aren't duplicated.
-	$('.message-body').off('click', messageBodyClick);
+	// Reset the event listeners.
+	var messageBodies = document.getElementsByClassName('message-body');
+	Array.prototype.forEach.call(messageBodies, function( messageBody ) {
+		messageBody.onclick = null;
+		messageBody.onclick = messageBodyClick;
+	});
 	
 	$('#selectAll').off('click', selectAllMessages);
 	$('#deleteBtn').off('click', deleteMessages);
 	
-	$('.message-checkbox').off('change', messageSelect);
-	
-	// Add the event listeners.
-	$('.message-body').on('click', messageBodyClick);
-	
 	$('#selectAll').on('click', selectAllMessages);
 	$('#deleteBtn').on('click', deleteMessages);
 	
-	$('.message-checkbox').on('change', messageSelect);
+	var checkboxes = document.getElementsByClassName('message-checkbox');
+	Array.prototype.forEach.call(checkboxes, function( checkbox ) {
+		checkbox.onchange = null;
+		checkbox.onchange = messageSelect;
+	});
 }
 
 function messageBodyClick( evntClick ) {
@@ -272,12 +270,14 @@ function checkDeleteEnabled() {
 	for (var inCheckboxes = 0; inCheckboxes < checkboxes.length; inCheckboxes++) {
 		if ($(checkboxes[inCheckboxes]).prop('checked')) {
 			$('#deleteBtn').removeClass('disabled');
+			$('#deleteBtn').removeAttr('disabled');
 			
 			return
 		}
 	}
 	
 	$('#deleteBtn').addClass('disabled');
+	$('#deleteBtn').attr('disabled', 'disabled');
 }
 
 function generateId() {

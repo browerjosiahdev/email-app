@@ -14,7 +14,7 @@
 			<div class="input-group">
 				<input aria-label="search box" class="form-control" ng-model="messageSearch" type="search"/>
 				<div class="input-group-btn">
-					<button aria-label="delete button" class="btn btn-danger disabled" id="deleteBtn">
+					<button aria-label="delete button" class="btn btn-danger disabled" id="deleteBtn" disabled="disabled">
 						<span aria-hidden="true" class="glyphicon glyphicon-trash"></span>
 					</button>
 					<button aria-label="compose button" class="btn btn-primary" data-toggle="modal" data-target="#composeModal" id="composeBtn">Compose</button>
@@ -27,9 +27,9 @@
 			</section>
 			<nav>
 				<ul class="nav nav-tabs">
-					<li class="active tab" id="inboxTab"><a href="#" ng-click="messages.setTab('inbox');">Inbox</a></li>
-					<li class="tab" id="outboxTab"><a href="#" ng-click="messages.setTab('outbox');">Outbox</a></li>
-					<li class="tab" id="archivedTab"><a href="#" ng-click="messages.setTab('archived');">Archived</a></li>
+					<li class="tab" id="inboxTab"    ng-class="{ active:messages.isTab('inbox')    }"><a href="#" ng-click="messages.setTab('inbox')">Inbox</a></li>
+					<li class="tab" id="outboxTab"   ng-class="{ active:messages.isTab('outbox')   }"><a href="#" ng-click="messages.setTab('outbox')">Outbox</a></li>
+					<li class="tab" id="archivedTab" ng-class="{ active:messages.isTab('archived') }"><a href="#" ng-click="messages.setTab('archived')">Archived</a></li>
 				</ul>
 				<div id="sortContainer">
 					<select id="sort" name="sort" ng-model="messageSort">
@@ -40,9 +40,9 @@
 			</nav>
 		</header>
 		<section id="mail">
-			<table class="table table-hover" ng-show="messages.display.length">
+			<table class="table table-hover" ng-show="messages.hasMessages()">
 				<tbody>
-					<tr ng-repeat="message in messages.display | orderBy:messageSort | filter:messageSearch track by $index">
+					<tr ng-repeat="message in messages[messages.tab] | orderBy:messageSort | filter:messageSearch track by $index">
 						<td>
 							<input class="message-checkbox" data-id="{{message.id}}" type="checkbox"/>
 						</td>
@@ -50,14 +50,12 @@
 							<p class="message-from" title="{{message.from || message.to}}">{{message.from || message.to}}</p>
 						</td>
 						<td>
-							<p class="message-body">{{message.message}}</p>
+							<p class="message-body" data-date="{{message.date}}">{{message.message}}</p>
 						</td>
 					</tr>
 				</tbody>
 			</table>
-			<div class="alert alert-info" id="emptyMessage" ng-hide="messages.display.length">
-				Looks like there are no messages here....
-			</div>
+			<div class="alert alert-info" id="emptyMessage" ng-hide="messages.hasMessages()">Looks like there are no messages here....</div>
 		</section>
 		<section>
 			<div id="composeModal" class="modal fade" role="dialog">
