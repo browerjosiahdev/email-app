@@ -123,7 +123,7 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 			
 			document.getElementById('composeForm').reset();
 			
-			initializeEvents();	
+			setTimeout(initializeEvents, 100);	
 		}
 	};
 	
@@ -165,10 +165,16 @@ mailApp.controller('MessagesController', ['$scope', function( $scope ) {
 					
 					$scope.messages[currentTab] = removeFromArray($scope.messages[currentTab], removeIndex);
 					
+					// Call to apply the scope changes.
+					$scope.$apply();
+					
 					break;
 				}
 				case 'archived': {
 					$scope.messages.archived = removeFromArray($scope.messages.archived, removeIndex);
+					
+					// Call to apply the scope changes.
+					$scope.$apply();
 					
 					break;
 				}
